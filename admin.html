@@ -64,6 +64,7 @@
     <div class="botoes">
       <button onclick="baixarExcelGeral()">📥 Baixar Excel Geral</button>
       <button onclick="filtrarPorCpf()">📥 Baixar por CPF</button>
+      <button onclick="carregarDados()">🔄 Atualizar Dados</button>
     </div>
     <table id="tabela">
       <thead>
@@ -97,7 +98,6 @@
     function preencherTabela(lista) {
       const corpo = document.getElementById("corpoTabela");
       corpo.innerHTML = "";
-      let duracoes = {};
       for (let i = 0; i < lista.length; i++) {
         const atual = lista[i];
         const anterior = lista[i - 1];
@@ -129,7 +129,6 @@
 
     function baixarExcelGeral() {
       alert("[Simulação] Baixar planilha geral.");
-      // Aqui você usaria SheetJS ou outro script para gerar o XLSX
     }
 
     function filtrarPorCpf() {
