@@ -157,15 +157,26 @@
     }
 
     function renderHistorico() {
-      if (!logs || logs.length === 0) {
+      const hoje = new Date().toISOString().split("T")[0];
+      const eventosFiltrados = logs.filter(e => e.cpf === motorista.cpf);
+      const fimDeJornada = [...eventosFiltrados].reverse().find(e => e.macro === "Fim de Jornada");
+
+      const eventosHoje = eventosFiltrados.filter(e => e.dataHora.startsWith(hoje));
+
+      if (eventosHoje.length === 0 && !fimDeJornada) {
         historicoDiv.innerHTML = '<p>Nenhuma macro registrada ainda.</p>';
         return;
       }
 
       let html = `<h3>Histórico</h3>`;
-      for (let i = 0; i < logs.length; i++) {
-        const atual = logs[i];
-        const anterior = logs[i - 1];
+      const lista = [...eventosHoje];
+      if (fimDeJornada && !eventosHoje.includes(fimDeJornada)) {
+        lista.unshift(fimDeJornada);
+      }
+
+      for (let i = 0; i < lista.length; i++) {
+        const atual = lista[i];
+        const anterior = lista[i - 1];
         const dataAtual = new Date(atual.dataHora);
         let duracao = '';
         if (anterior) {
