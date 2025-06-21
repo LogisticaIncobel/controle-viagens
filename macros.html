@@ -139,21 +139,25 @@
       iniciarCronometro();
     }
 
-    function renderBotoes() {
-      botoesDiv.innerHTML = '';
-      const proximos = fluxo[estadoAtual] || [];
-      if (proximos.length === 0 && estadoAtual === 'Fim de Jornada') {
-        botoesDiv.innerHTML = '<p><strong>Jornada encerrada.</strong></p>';
-        localStorage.removeItem('macroHora');
-        clearInterval(cronometroInterval);
-        return;
-      }
-      proximos.forEach(macro => {
-        const btn = document.createElement('button');
-        btn.textContent = macro;
-        btn.onclick = () => salvarEvento(macro);
+function renderBotoes() {
+  botoesDiv.innerHTML = '';
+  const proximos = fluxo[estadoAtual] || [];
+
+  if (proximos.length === 0 && estadoAtual === 'Fim de Jornada') {
+    botoesDiv.innerHTML = '<p><strong>Jornada encerrada.</strong></p>';
+    localStorage.removeItem('macroHora');
+    clearInterval(cronometroInterval);
+    return;
+    }
+
+    proximos.forEach(macro => {
+      if (macro !== estadoAtual) {
+         const btn = document.createElement('button');
+         btn.textContent = macro;
+         btn.onclick = () => salvarEvento(macro);
         botoesDiv.appendChild(btn);
-      });
+       }
+     });
     }
 
     function renderHistorico() {
