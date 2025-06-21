@@ -98,33 +98,36 @@
     function preencherTabela(lista) {
       const corpo = document.getElementById("corpoTabela");
       corpo.innerHTML = "";
-      for (let i = 0; i < lista.length; i++) {
-        const atual = lista[i];
-        const anterior = lista[i - 1];
+      const ultimos = {};
+      lista.forEach(e => {
+        if (!ultimos[e.cpf] || new Date(e.dataHora) > new Date(ultimos[e.cpf].dataHora)) {
+          ultimos[e.cpf] = e;
+        }
+      });
+      Object.values(ultimos).forEach(e => {
+        const anterior = lista.filter(x => x.cpf === e.cpf && new Date(x.dataHora) < new Date(e.dataHora)).pop();
         let duracao = "-";
-
-        if (anterior && anterior.cpf === atual.cpf) {
-          const d1 = new Date(anterior.data);
-          const d2 = new Date(atual.data);
+        if (anterior) {
+          const d1 = new Date(anterior.dataHora);
+          const d2 = new Date(e.dataHora);
           const ms = d2 - d1;
           const min = Math.floor(ms / 60000);
           duracao = min + " min";
         }
-
         corpo.innerHTML += `
           <tr>
-            <td>${atual.cpf}</td>
-            <td>${atual.nome}</td>
-            <td>${atual.cavalo}</td>
-            <td>${atual.carreta}</td>
-            <td>${atual.origem}</td>
-            <td>${atual.destino}</td>
-            <td>${atual.macro}</td>
-            <td>${atual.data}</td>
+            <td>${e.cpf}</td>
+            <td>${e.nome}</td>
+            <td>${e.cavalo}</td>
+            <td>${e.carreta}</td>
+            <td>${e.origem}</td>
+            <td>${e.destino}</td>
+            <td>${e.macro}</td>
+            <td>${e.dataHora}</td>
             <td>${duracao}</td>
           </tr>
         `;
-      }
+      });
     }
 
     function baixarExcelGeral() {
