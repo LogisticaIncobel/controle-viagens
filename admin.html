@@ -3,141 +3,141 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#000000" />
-  <title>Eventos da Viagem</title>
+  <title>Admin - Controle de Viagens</title>
   <style>
     body {
+      font-family: Arial, sans-serif;
       margin: 0;
-      font-family: sans-serif;
+      padding: 1rem;
       background-color: #f5f5f5;
-      padding: 1rem;
     }
-    .topo {
-      margin-bottom: 1rem;
+    h1 {
       text-align: center;
-    }
-    .info {
-      font-size: 1rem;
       margin-bottom: 1rem;
-      background: #fff;
+    }
+    .painel {
+      background: white;
+      border-radius: 10px;
       padding: 1rem;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 1200px;
+      margin: auto;
     }
     .botoes {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
       gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
     }
-    button {
-      padding: 1.2rem;
+    .botoes button {
+      flex: 1;
+      padding: 0.75rem;
       font-size: 1rem;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       background-color: #007bff;
       color: white;
       cursor: pointer;
     }
-    button:disabled {
-      background-color: #ccc;
+    .botoes button:hover {
+      background-color: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <div class="topo">
-    <h2>Macros</h2>
+  <div class="painel">
+    <h1>Painel do Analista</h1>
+    <div class="botoes">
+      <button onclick="baixarExcelGeral()">📥 Baixar Excel Geral</button>
+      <button onclick="filtrarPorCpf()">📥 Baixar por CPF</button>
+    </div>
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>CPF</th>
+          <th>Nome</th>
+          <th>Cavalo</th>
+          <th>Carreta</th>
+          <th>Origem</th>
+          <th>Destino</th>
+          <th>Macro</th>
+          <th>Data</th>
+          <th>Duração</th>
+        </tr>
+      </thead>
+      <tbody id="corpoTabela"></tbody>
+    </table>
   </div>
 
-  <div class="info" id="info"></div>
-
-  <div class="botoes" id="botoes"></div>
-
   <script>
-    const fluxo = {
-      "Início de Jornada": ["Início de Viagem"],
-      "Início de Viagem": ["Parada de Descanso", "Parada de Refeição", "Chegada Fábrica", "Fim de Jornada"],
-      "Parada de Descanso": ["Início de Viagem"],
-      "Parada de Refeição": ["Início de Viagem"],
-      "Chegada Fábrica": ["Saída Fábrica"],
-      "Saída Fábrica": ["Início de Viagem"],
-      "Fim de Jornada": []
-    };
+    const token = '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';
+    const repo = 'LogisticaIncobel/controle-viagens';
+    const filePath = 'eventos.json';
 
-    const infoDiv = document.getElementById('info');
-    const botoesDiv = document.getElementById('botoes');
-    let estadoAtual = localStorage.getItem('macroAtual') || 'Início de Jornada';
-
-    const motorista = {
-      cpf: localStorage.getItem('cpf'),
-      nome: localStorage.getItem('nome'),
-      origem: localStorage.getItem('origem'),
-      destino: localStorage.getItem('destino'),
-      cavalo: localStorage.getItem('cavalo'),
-      carreta: localStorage.getItem('carreta')
-    };
-
-    function renderInfo() {
-      infoDiv.innerHTML = `
-        <strong>${motorista.nome}</strong><br>
-        CPF: ${motorista.cpf}<br>
-        Origem: ${motorista.origem} → Destino: ${motorista.destino}<br>
-        Cavalo: ${motorista.cavalo} | Carreta: ${motorista.carreta}<br>
-        <strong>Último evento:</strong> ${estadoAtual}
-      `;
+    async function carregarDados() {
+      const res = await fetch(`https://raw.githubusercontent.com/${repo}/main/${filePath}?cache=${Date.now()}`);
+      const dados = await res.json();
+      preencherTabela(dados);
     }
 
-    function salvarEvento(macro) {
-      const evento = {
-        cpf: motorista.cpf,
-        nome: motorista.nome,
-        dataHora: new Date().toISOString(),
-        macro,
-        origem: motorista.origem,
-        destino: motorista.destino,
-        cavalo: motorista.cavalo,
-        carreta: motorista.carreta
-      };
+    function preencherTabela(lista) {
+      const corpo = document.getElementById("corpoTabela");
+      corpo.innerHTML = "";
+      let duracoes = {};
+      for (let i = 0; i < lista.length; i++) {
+        const atual = lista[i];
+        const anterior = lista[i - 1];
+        let duracao = "-";
 
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          evento.gps = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude
-          };
-          registrar(evento, macro);
-        }, () => registrar(evento, macro));
-      } else {
-        registrar(evento, macro);
+        if (anterior && anterior.cpf === atual.cpf) {
+          const d1 = new Date(anterior.data);
+          const d2 = new Date(atual.data);
+          const ms = d2 - d1;
+          const min = Math.floor(ms / 60000);
+          duracao = min + " min";
+        }
+
+        corpo.innerHTML += `
+          <tr>
+            <td>${atual.cpf}</td>
+            <td>${atual.nome}</td>
+            <td>${atual.cavalo}</td>
+            <td>${atual.carreta}</td>
+            <td>${atual.origem}</td>
+            <td>${atual.destino}</td>
+            <td>${atual.macro}</td>
+            <td>${atual.data}</td>
+            <td>${duracao}</td>
+          </tr>
+        `;
       }
     }
 
-    function registrar(evento, macro) {
-      const logs = JSON.parse(localStorage.getItem('eventos') || '[]');
-      logs.push(evento);
-      localStorage.setItem('eventos', JSON.stringify(logs));
-      localStorage.setItem('macroAtual', macro);
-      estadoAtual = macro;
-      renderInfo();
-      renderBotoes();
+    function baixarExcelGeral() {
+      alert("[Simulação] Baixar planilha geral.");
+      // Aqui você usaria SheetJS ou outro script para gerar o XLSX
     }
 
-    function renderBotoes() {
-      botoesDiv.innerHTML = '';
-      const proximos = fluxo[estadoAtual] || [];
-      if (proximos.length === 0 && estadoAtual === 'Fim de Jornada') {
-        botoesDiv.innerHTML = '<p><strong>Jornada encerrada.</strong></p>';
-        return;
-      }
-      proximos.forEach(macro => {
-        const btn = document.createElement('button');
-        btn.textContent = macro;
-        btn.onclick = () => salvarEvento(macro);
-        botoesDiv.appendChild(btn);
-      });
+    function filtrarPorCpf() {
+      const cpf = prompt("Digite o CPF para exportar:");
+      alert(`[Simulação] Baixar Excel filtrado por CPF: ${cpf}`);
     }
 
-    renderInfo();
-    renderBotoes();
+    carregarDados();
   </script>
 </body>
 </html>
