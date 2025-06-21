@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sincronizar Eventos</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+    }
+    pre {
+      background: #eee;
+      padding: 1rem;
+      overflow: auto;
+      max-height: 300px;
+      border-radius: 8px;
+    }
+    button {
+      padding: 1rem;
+      font-size: 1rem;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 1rem;
+      display: block;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sincronizar Eventos</h1>
+  <button onclick="sincronizar()">Enviar para GitHub</button>
+  <pre id="log">Pronto para sincronizar...</pre>
+
+  <script>
+    const repo = "LogisticaIncobel/controle-viagens";
+    const filename = "eventos.json";
+    const token = "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";
+
+    async function sincronizar() {
+      const eventos = localStorage.getItem("eventos");
+      const log = document.getElementById("log");
+      if (!eventos) {
+        log.textContent = "Nenhum evento encontrado no localStorage.";
+        return;
+      }
+
+      const contentEncoded = btoa(unescape(encodeURIComponent(eventos)));
+
+      const getResp = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const sha = getResp.ok ? (await getResp.json()).sha : undefined;
+
+      const resp = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          message: "Atualização automática de eventos",
+          content: contentEncoded,
+          sha: sha
+        })
+      });
+
+      if (resp.ok) {
+        log.textContent = `Sincronizado com sucesso em ${new Date().toLocaleString()}`;
+      } else {
+        const error = await resp.json();
+        log.textContent = `Erro: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

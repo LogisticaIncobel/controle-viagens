@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viagem</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 500px;
+    }
+    select, button {
+      width: 100%;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Dados da Viagem</h2>
+    <select id="origem">
+      <option value="">Selecione a origem</option>
+      <option value="LAGES-SC">LAGES-SC</option>
+      <option value="RIO DO SUL-SC">RIO DO SUL-SC</option>
+    </select>
+    <select id="destino">
+      <option value="">Selecione o destino</option>
+      <option value="AMBEV - AGUAS CLARAS DO SUL">AMBEV - AGUAS CLARAS DO SUL</option>
+      <option value="AMBEV - AGUDOS">AMBEV - AGUDOS</option>
+      <option value="AMBEV - CDR ITAJAÍ">AMBEV - CDR ITAJAÍ</option>
+      <option value="AMBEV - CURITIBANA">AMBEV - CURITIBANA</option>
+      <option value="AMBEV - JACAREI">AMBEV - JACAREI</option>
+      <option value="AMBEV - JAGUARIUNA">AMBEV - JAGUARIUNA</option>
+      <option value="AMBEV - NOVA RIO">AMBEV - NOVA RIO</option>
+      <option value="AMBEV - PONTA GROSSA">AMBEV - PONTA GROSSA</option>
+      <option value="AMBEV - SANTA CATARINA">AMBEV - SANTA CATARINA</option>
+      <option value="AMBEV - SAPUCAIA">AMBEV - SAPUCAIA</option>
+      <option value="CDD - JOINVILLE">CDD - JOINVILLE</option>
+    </select>
+    <select id="cavalo">
+      <option value="">Selecione o cavalo</option>
+      <option value="RLO3J98">RLO3J98</option>
+      <option value="RYN0I35">RYN0I35</option>
+      <option value="SXS7F99">SXS7F99</option>
+      <option value="GBY1A57">GBY1A57</option>
+      <option value="MKP5722">MKP5722</option>
+      <option value="IUX8622">IUX8622</option>
+      <option value="MLS1A40">MLS1A40</option>
+      <option value="MKP5E42">MKP5E42</option>
+      <option value="ISZ2I51">ISZ2I51</option>
+      <option value="AYL7851">AYL7851</option>
+      <option value="MJV7840">MJV7840</option>
+      <option value="ATN7B72">ATN7B72</option>
+      <option value="OUL2E40">OUL2E40</option>
+    </select>
+    <select id="carreta">
+      <option value="">Selecione a carreta</option>
+      <option value="QJR1G67">QJR1G67</option>
+      <option value="QJR1H47">QJR1H47</option>
+      <option value="CUD7B16">CUD7B16</option>
+      <option value="DTB2177">DTB2177</option>
+      <option value="APJ3022">APJ3022</option>
+      <option value="MLP9J59">MLP9J59</option>
+      <option value="MIV1J02">MIV1J02</option>
+      <option value="RLJ5I87">RLJ5I87</option>
+      <option value="RHE8I79">RHE8I79</option>
+      <option value="BEH8D24">BEH8D24</option>
+      <option value="ODR3779">ODR3779</option>
+    </select>
+    <button id="avancar" disabled>Avançar</button>
+  </div>
+
+  <script>
+    const origem = document.getElementById('origem');
+    const destino = document.getElementById('destino');
+    const cavalo = document.getElementById('cavalo');
+    const carreta = document.getElementById('carreta');
+    const avancar = document.getElementById('avancar');
+
+    function validarCampos() {
+      avancar.disabled = !(origem.value && destino.value && cavalo.value && carreta.value);
+    }
+
+    origem.onchange = validarCampos;
+    destino.onchange = validarCampos;
+    cavalo.onchange = validarCampos;
+    carreta.onchange = validarCampos;
+
+    avancar.onclick = () => {
+      localStorage.setItem('origem', origem.value);
+      localStorage.setItem('destino', destino.value);
+      localStorage.setItem('cavalo', cavalo.value);
+      localStorage.setItem('carreta', carreta.value);
+      localStorage.setItem('macroAtual', 'Início de Jornada');
+      window.location.href = 'macros.html';
+    };
+  </script>
+</body>
+</html>

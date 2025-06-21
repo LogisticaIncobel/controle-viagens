@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
+  <title>Login - Controle de Viagens</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 400px;
+    }
+    input {
+      width: 100%;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    #nome {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Login</h2>
+    <input id="cpf" type="text" maxlength="11" placeholder="Digite seu CPF" />
+    <div id="nome"></div>
+    <button id="avancar" disabled>Avançar</button>
+  </div>
+
+  <script>
+    const cpfInput = document.getElementById('cpf');
+    const nomeDiv = document.getElementById('nome');
+    const avancarBtn = document.getElementById('avancar');
+
+    const motoristas = JSON.parse(localStorage.getItem('motoristas') || '[]');
+
+    cpfInput.addEventListener('input', () => {
+      const cpf = cpfInput.value.trim();
+      const motorista = motoristas.find(m => m.cpf === cpf);
+      if (motorista) {
+        nomeDiv.textContent = motorista.nome;
+        avancarBtn.disabled = false;
+      } else {
+        nomeDiv.textContent = '';
+        avancarBtn.disabled = true;
+      }
+    });
+
+    avancarBtn.addEventListener('click', () => {
+      const cpf = cpfInput.value.trim();
+      const motorista = motoristas.find(m => m.cpf === cpf);
+      if (motorista) {
+        localStorage.setItem('cpf', motorista.cpf);
+        localStorage.setItem('nome', motorista.nome);
+        window.location.href = 'viagem.html';
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>
