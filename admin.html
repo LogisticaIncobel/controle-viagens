@@ -92,42 +92,51 @@
     async function carregarDados() {
       const res = await fetch(`https://raw.githubusercontent.com/${repo}/main/${filePath}?cache=${Date.now()}`);
       const dados = await res.json();
-      preencherTabela(dados);
+      mostrarAtivos(dados);
     }
 
-    function preencherTabela(lista) {
+    function mostrarAtivos(lista) {
       const corpo = document.getElementById("corpoTabela");
       corpo.innerHTML = "";
-      const ultimos = {};
+
+      // Agrupar eventos por CPF
+      const porCPF = {};
       lista.forEach(e => {
-        if (!ultimos[e.cpf] || new Date(e.dataHora) > new Date(ultimos[e.cpf].dataHora)) {
-          ultimos[e.cpf] = e;
-        }
+        if (!porCPF[e.cpf]) porCPF[e.cpf] = [];
+        porCPF[e.cpf].push(e);
       });
-      Object.values(ultimos).forEach(e => {
-        const anterior = lista.filter(x => x.cpf === e.cpf && new Date(x.dataHora) < new Date(e.dataHora)).pop();
-        let duracao = "-";
-        if (anterior) {
-          const d1 = new Date(anterior.dataHora);
-          const d2 = new Date(e.dataHora);
-          const ms = d2 - d1;
-          const min = Math.floor(ms / 60000);
-          duracao = min + " min";
+
+      // Verificar quais estão ativos (sem "Fim de Jornada")
+      for (const cpf in porCPF) {
+        const eventos = porCPF[cpf];
+        const ultimo = eventos[eventos.length - 1];
+        if (ultimo.macro !== "Fim de Jornada") {
+          const anterior = eventos[eventos.length - 2];
+          let duracao = "-";
+
+          if (anterior && anterior.cpf === ultimo.cpf) {
+            const d1 = new Date(anterior.dataHora || anterior.data);
+            const d2 = new Date(ultimo.dataHora || ultimo.data);
+            const ms = d2 - d1;
+            const min = Math.floor(ms / 60000);
+            duracao = min + " min";
+          }
+
+          corpo.innerHTML += `
+            <tr>
+              <td>${ultimo.cpf}</td>
+              <td>${ultimo.nome}</td>
+              <td>${ultimo.cavalo}</td>
+              <td>${ultimo.carreta}</td>
+              <td>${ultimo.origem}</td>
+              <td>${ultimo.destino}</td>
+              <td>${ultimo.macro}</td>
+              <td>${new Date(ultimo.dataHora || ultimo.data).toLocaleString()}</td>
+              <td>${duracao}</td>
+            </tr>
+          `;
         }
-        corpo.innerHTML += `
-          <tr>
-            <td>${e.cpf}</td>
-            <td>${e.nome}</td>
-            <td>${e.cavalo}</td>
-            <td>${e.carreta}</td>
-            <td>${e.origem}</td>
-            <td>${e.destino}</td>
-            <td>${e.macro}</td>
-            <td>${e.dataHora}</td>
-            <td>${duracao}</td>
-          </tr>
-        `;
-      });
+      }
     }
 
     function baixarExcelGeral() {
