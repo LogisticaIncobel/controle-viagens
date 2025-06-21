@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Opções</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+    h2 {
+      margin-bottom: 1.5rem;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .teste {
+      background-color: #007bff;
+      color: white;
+    }
+    .admin {
+      background-color: #28a745;
+      color: white;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Bem-vindo, Analista</h2>
+    <button class="teste" onclick="window.location.href='viagem.html'">🧪 Teste de Macros</button>
+    <button class="admin" onclick="window.location.href='admin.html'">📊 Acesso Admin</button>
+  </div>
+</body>
+</html>
