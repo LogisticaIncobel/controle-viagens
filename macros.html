@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#000000" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eventos da Viagem</title>
   <style>
     body {
@@ -16,7 +15,7 @@
       margin-bottom: 1rem;
       text-align: center;
     }
-    .info {
+    .info, .historico {
       font-size: 1rem;
       margin-bottom: 1rem;
       background: #fff;
@@ -41,6 +40,16 @@
     button:disabled {
       background-color: #ccc;
     }
+    .macro-ativa {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #007bff;
+    }
+    .linha-macro {
+      border-top: 1px solid #eee;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -51,6 +60,8 @@
   <div class="info" id="info"></div>
 
   <div class="botoes" id="botoes"></div>
+
+  <div class="historico" id="historico"></div>
 
   <script>
     const fluxo = {
@@ -65,7 +76,7 @@
 
     const infoDiv = document.getElementById('info');
     const botoesDiv = document.getElementById('botoes');
-    let estadoAtual = localStorage.getItem('macroAtual') || 'Início de Jornada';
+    const historicoDiv = document.getElementById('historico');
 
     const motorista = {
       cpf: localStorage.getItem('cpf'),
@@ -76,6 +87,10 @@
       carreta: localStorage.getItem('carreta')
     };
 
+    let estadoAtual = localStorage.getItem('macroAtual') || 'Início de Jornada';
+    let logs = JSON.parse(localStorage.getItem('eventos') || '[]');
+    let cronometroInterval = null;
+
     function renderInfo() {
       infoDiv.innerHTML = `
         <strong>${motorista.nome}</strong><br>
@@ -83,6 +98,7 @@
         Origem: ${motorista.origem} → Destino: ${motorista.destino}<br>
         Cavalo: ${motorista.cavalo} | Carreta: ${motorista.carreta}<br>
         <strong>Último evento:</strong> ${estadoAtual}
+        <div class="macro-ativa" id="cronometroAtual"></div>
       `;
     }
 
@@ -112,13 +128,15 @@
     }
 
     function registrar(evento, macro) {
-      const logs = JSON.parse(localStorage.getItem('eventos') || '[]');
       logs.push(evento);
       localStorage.setItem('eventos', JSON.stringify(logs));
       localStorage.setItem('macroAtual', macro);
+      localStorage.setItem('macroHora', evento.dataHora);
       estadoAtual = macro;
       renderInfo();
       renderBotoes();
+      renderHistorico();
+      iniciarCronometro();
     }
 
     function renderBotoes() {
@@ -126,6 +144,8 @@
       const proximos = fluxo[estadoAtual] || [];
       if (proximos.length === 0 && estadoAtual === 'Fim de Jornada') {
         botoesDiv.innerHTML = '<p><strong>Jornada encerrada.</strong></p>';
+        localStorage.removeItem('macroHora');
+        clearInterval(cronometroInterval);
         return;
       }
       proximos.forEach(macro => {
@@ -136,8 +156,53 @@
       });
     }
 
+    function renderHistorico() {
+      if (!logs || logs.length === 0) {
+        historicoDiv.innerHTML = '<p>Nenhuma macro registrada ainda.</p>';
+        return;
+      }
+
+      let html = `<h3>Histórico</h3>`;
+      for (let i = 0; i < logs.length; i++) {
+        const atual = logs[i];
+        const anterior = logs[i - 1];
+        const dataAtual = new Date(atual.dataHora);
+        let duracao = '';
+        if (anterior) {
+          const dataAnterior = new Date(anterior.dataHora);
+          const ms = dataAtual - dataAnterior;
+          const minutos = Math.floor(ms / 60000);
+          const segundos = Math.floor((ms % 60000) / 1000);
+          duracao = ` (${minutos}min ${segundos}s)`;
+        }
+
+        html += `<div class="linha-macro"><strong>${atual.macro}</strong> - ${new Date(atual.dataHora).toLocaleString()}${duracao}</div>`;
+      }
+
+      historicoDiv.innerHTML = html;
+    }
+
+    function iniciarCronometro() {
+      const inicio = localStorage.getItem('macroHora');
+      if (!inicio) return;
+
+      const cronometro = document.getElementById('cronometroAtual');
+      clearInterval(cronometroInterval);
+      cronometroInterval = setInterval(() => {
+        const agora = new Date();
+        const inicioData = new Date(inicio);
+        const ms = agora - inicioData;
+        const h = Math.floor(ms / 3600000);
+        const m = Math.floor((ms % 3600000) / 60000);
+        const s = Math.floor((ms % 60000) / 1000);
+        cronometro.textContent = `Duração atual: ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }, 1000);
+    }
+
     renderInfo();
     renderBotoes();
+    renderHistorico();
+    iniciarCronometro();
   </script>
 </body>
 </html>
