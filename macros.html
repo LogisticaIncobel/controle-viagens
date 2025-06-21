@@ -58,9 +58,7 @@
   </div>
 
   <div class="info" id="info"></div>
-
   <div class="botoes" id="botoes"></div>
-
   <div class="historico" id="historico"></div>
 
   <script>
@@ -73,6 +71,10 @@
       "Saída Fábrica": ["Início de Viagem"],
       "Fim de Jornada": []
     };
+
+    const token = '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';
+    const repo = 'LogisticaIncobel/controle-viagens';
+    const filePath = 'eventos.json';
 
     const infoDiv = document.getElementById('info');
     const botoesDiv = document.getElementById('botoes');
@@ -127,7 +129,7 @@
       }
     }
 
-    function registrar(evento, macro) {
+    async function registrar(evento, macro) {
       logs.push(evento);
       localStorage.setItem('eventos', JSON.stringify(logs));
       localStorage.setItem('macroAtual', macro);
@@ -137,34 +139,52 @@
       renderBotoes();
       renderHistorico();
       iniciarCronometro();
+      await enviarParaGithub(evento);
     }
 
-function renderBotoes() {
-  botoesDiv.innerHTML = '';
-  const proximos = fluxo[estadoAtual] || [];
-
-  if (proximos.length === 0 && estadoAtual === 'Fim de Jornada') {
-    botoesDiv.innerHTML = '<p><strong>Jornada encerrada.</strong></p>';
-    localStorage.removeItem('macroHora');
-    clearInterval(cronometroInterval);
-    return;
+    async function enviarParaGithub(evento) {
+      const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+      const res = await fetch(url, { headers: { Authorization: `token ${token}` } });
+      const json = await res.json();
+      const conteudo = JSON.parse(atob(json.content));
+      conteudo.push(evento);
+      await fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: "Evento registrado via macros.html",
+          content: btoa(JSON.stringify(conteudo, null, 2)),
+          sha: json.sha
+        })
+      });
     }
 
-    proximos.forEach(macro => {
-      if (macro !== estadoAtual) {
-         const btn = document.createElement('button');
-         btn.textContent = macro;
-         btn.onclick = () => salvarEvento(macro);
-        botoesDiv.appendChild(btn);
-       }
-     });
+    function renderBotoes() {
+      botoesDiv.innerHTML = '';
+      const proximos = fluxo[estadoAtual] || [];
+      if (proximos.length === 0 && estadoAtual === 'Fim de Jornada') {
+        botoesDiv.innerHTML = '<p><strong>Jornada encerrada.</strong></p>';
+        localStorage.removeItem('macroHora');
+        clearInterval(cronometroInterval);
+        return;
+      }
+      proximos.forEach(macro => {
+        if (macro !== estadoAtual) {
+          const btn = document.createElement('button');
+          btn.textContent = macro;
+          btn.onclick = () => salvarEvento(macro);
+          botoesDiv.appendChild(btn);
+        }
+      });
     }
 
     function renderHistorico() {
       const hoje = new Date().toISOString().split("T")[0];
       const eventosFiltrados = logs.filter(e => e.cpf === motorista.cpf);
       const fimDeJornada = [...eventosFiltrados].reverse().find(e => e.macro === "Fim de Jornada");
-
       const eventosHoje = eventosFiltrados.filter(e => e.dataHora.startsWith(hoje));
 
       if (eventosHoje.length === 0 && !fimDeJornada) {
